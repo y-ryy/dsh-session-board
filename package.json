@@ -16,7 +16,8 @@
     "cordis.patch.yml",
     "locale/*.json",
     "icon.svg",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "dsh": {
     "bundle": {
@@ -41,5 +42,13 @@
     "kanban",
     "workspace"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/y-ryy/dsh-session-board.git"
+  },
+  "homepage": "https://github.com/y-ryy/dsh-session-board",
+  "bugs": {
+    "url": "https://github.com/y-ryy/dsh-session-board/issues"
+  },
   "license": "MIT"
 }
