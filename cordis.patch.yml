@@ -1,0 +1,5 @@
+# dsh-session-board — mount one profile row; the Client half owns rendering and interaction.
+- insert:
+    - id: session-board
+      name: '@local/dsh-session-board'
+      config: {}

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Session Board",
+    "description": "Browse all sessions grouped by workspace, with running, pending-approval, and completed card colors, pin-to-top, and one-click return."
+  }
+}
