@@ -43,6 +43,11 @@ window.__ModuleLoader__.load({
       'card.pin': '固定到顶部',
       'card.unpin': '取消固定',
       'card.untitled': '未命名会话',
+      'permission.readOnly': '仅可查看',
+      'permission.workspaceWrite': '工作区内修改',
+      'permission.fullAccess': '完全权限',
+      'permission.custom': '自定义',
+      'permission.auto': '自动审查',
       'time.justNow': '刚刚',
       'time.minutesAgo': '{n} 分钟前',
       'time.hoursAgo': '{n} 小时前',
@@ -90,6 +95,11 @@ window.__ModuleLoader__.load({
       'card.pin': 'Pin to top',
       'card.unpin': 'Unpin',
       'card.untitled': 'Untitled session',
+      'permission.readOnly': 'Read only',
+      'permission.workspaceWrite': 'Workspace write',
+      'permission.fullAccess': 'Full access',
+      'permission.custom': 'Custom',
+      'permission.auto': 'Auto review',
       'time.justNow': 'just now',
       'time.minutesAgo': '{n} min ago',
       'time.hoursAgo': '{n} hr ago',
@@ -292,7 +302,7 @@ body[data-ds-dark-theme] .dsb-page {
 .dsb-card-wrap {
   position: relative;
   display: flex;
-  min-height: 144px;
+  min-height: 192px;
 }
 .dsb-card {
   position: relative;
@@ -300,7 +310,7 @@ body[data-ds-dark-theme] .dsb-page {
   width: 100%;
   display: flex;
   flex-direction: column;
-  min-height: 144px;
+  min-height: 192px;
   padding: 13px 15px 12px;
   border: 0;
   border-radius: 15px;
@@ -395,6 +405,39 @@ body[data-ds-dark-theme] .dsb-card {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+.dsb-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  margin-top: 11px;
+}
+.dsb-meta-line {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 10.5px;
+  line-height: 1.35;
+}
+.dsb-meta-line svg {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  opacity: .85;
+}
+.dsb-meta-line span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dsb-meta-line--permission-full { color: var(--dsw-alias-state-warn-primary); }
+.dsb-meta-line--permission-workspace { color: var(--dsb-running-accent); }
+.dsb-meta-line--permission-readonly { color: var(--dsw-alias-state-success-primary); }
+.dsb-meta-line--permission-custom,
+.dsb-meta-line--permission-auto,
+.dsb-meta-line--permission-unknown { color: var(--dsw-alias-label-secondary); }
 .dsb-card-bottom {
   display: flex;
   align-items: center;
@@ -830,6 +873,38 @@ body[data-ds-dark-theme] .dsb-card {
       try { return new Date(Number(value)).toLocaleDateString() } catch (error) { return '' }
     }
 
+    function projectionValueOf(list, summary, sessionId, key) {
+      return list && list.projectionsBySession && list.projectionsBySession[sessionId] && list.projectionsBySession[sessionId].values
+        ? list.projectionsBySession[sessionId].values[key]
+        : summary && summary.projectionValues
+          ? summary.projectionValues[key]
+          : undefined
+    }
+
+    function modelLabelOf(selection) {
+      const selected = selection && (selection.next !== undefined ? selection.next : selection.lastUsed)
+      const model = selected && selected.model
+      if (!model) return ''
+      const effort = selected.reasoningEffort
+      if (!effort) return String(model)
+      const effortText = String(effort)
+      return `${String(model)} · ${effortText.charAt(0).toUpperCase()}${effortText.slice(1)}`
+    }
+
+    function permissionInfoOf(selection, t) {
+      const value = selection && selection.currentValue
+      switch (value) {
+        case 'read-only': return { label: t('permission.readOnly'), tone: 'readonly' }
+        case 'workspace-write': return { label: t('permission.workspaceWrite'), tone: 'workspace' }
+        case 'danger-full-access': return { label: t('permission.fullAccess'), tone: 'full' }
+        case 'custom': return { label: t('permission.custom'), tone: 'custom' }
+        case 'auto': return { label: t('permission.auto'), tone: 'auto' }
+        default:
+          if (typeof value === 'string' && value !== '') return { label: value, tone: 'unknown' }
+          return null
+      }
+    }
+
     function IconFolder(props) {
       const size = props && props.size ? props.size : 13
       return h('svg', {
@@ -858,6 +933,26 @@ body[data-ds-dark-theme] .dsb-card {
       },
       h('path', { d: 'M9.8 3.4 5.2 8l4.6 4.6' }),
       h('path', { d: 'M5.4 8h7.2' }))
+    }
+
+    function IconSpark() {
+      return h('svg', {
+        width: 12, height: 12, viewBox: '0 0 16 16', fill: 'none',
+        stroke: 'currentColor', strokeWidth: 1.2, strokeLinecap: 'round',
+        strokeLinejoin: 'round', 'aria-hidden': true
+      },
+      h('path', { d: 'M8 1.7l1.3 3.7 3.7 1.3-3.7 1.3L8 11.7 6.7 8 3 6.7l3.7-1.3L8 1.7Z' }),
+      h('path', { d: 'M12.8 10.7l.5 1.4 1.4.5-1.4.5-.5 1.4-.5-1.4-1.4-.5 1.4-.5.5-1.4Z' }))
+    }
+
+    function IconShield() {
+      return h('svg', {
+        width: 12, height: 12, viewBox: '0 0 16 16', fill: 'none',
+        stroke: 'currentColor', strokeWidth: 1.2, strokeLinecap: 'round',
+        strokeLinejoin: 'round', 'aria-hidden': true
+      },
+      h('path', { d: 'M8 1.8 13 3.8v3.5c0 3.3-2.1 5.6-5 6.9-2.9-1.3-5-3.6-5-6.9V3.8l5-2Z' }),
+      h('path', { d: 'm5.7 8 1.5 1.5 3-3' }))
     }
 
     function IconEmpty() {
@@ -1066,6 +1161,16 @@ body[data-ds-dark-theme] .dsb-card {
           h('span', { className: 'dsb-ws' }, h(IconFolder), h('span', null, card.workspaceName))
         ),
         h('h3', { className: 'dsb-card-title' }, card.title || t('card.untitled')),
+        card.model || card.permission ? h('div', { className: 'dsb-meta' },
+          card.model ? h('div', {
+            className: 'dsb-meta-line dsb-meta-line--model',
+            title: card.model
+          }, h(IconSpark), h('span', null, card.model)) : null,
+          card.permission ? h('div', {
+            className: 'dsb-meta-line dsb-meta-line--permission-' + card.permission.tone,
+            title: card.permission.label
+          }, h(IconShield), h('span', null, card.permission.label)) : null
+        ) : null,
         expandable ? h('div', { className: 'dsb-card-hint' }, expanded ? t('approval.expandedHint') : t('approval.expandHint')) : null,
         h('div', { className: 'dsb-card-bottom' },
           h('span', { className: 'dsb-status dsb-status--' + card.status.key },
@@ -1121,6 +1226,8 @@ body[data-ds-dark-theme] .dsb-card {
           const displayTitle = summary.displayTitle || summary.title || sessionId
           const rawStatus = statusMap && typeof statusMap.get === 'function' ? statusMap.get(sessionId) : undefined
           const status = deriveCardStatus(summary, rawStatus, statusMap, list)
+          const model = modelLabelOf(projectionValueOf(list, summary, sessionId, 'modelSelection'))
+          const permission = permissionInfoOf(projectionValueOf(list, summary, sessionId, 'permissions'), t)
           cards.push({
             id: sessionId,
             title: displayTitle,
@@ -1128,6 +1235,8 @@ body[data-ds-dark-theme] .dsb-card {
             workspaceName: workspace ? workspaceDisplayName(workspace, t) : t('group.ungrouped'),
             workspacePath: workspace ? workspace.path : '',
             updatedAt: summary.updatedAt || 0,
+            model,
+            permission,
             status: { ...status, pendingInteraction: rawStatus && rawStatus.pendingInteraction }
           })
         }
