@@ -302,7 +302,7 @@ body[data-ds-dark-theme] .dsb-page {
 .dsb-card-wrap {
   position: relative;
   display: flex;
-  min-height: 176px;
+  min-height: 154px;
 }
 .dsb-card {
   position: relative;
@@ -310,7 +310,7 @@ body[data-ds-dark-theme] .dsb-page {
   width: 100%;
   display: flex;
   flex-direction: column;
-  min-height: 176px;
+  min-height: 154px;
   padding: 13px 15px 12px;
   border: 0;
   border-radius: 15px;
