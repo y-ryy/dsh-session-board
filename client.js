@@ -302,7 +302,7 @@ body[data-ds-dark-theme] .dsb-page {
 .dsb-card-wrap {
   position: relative;
   display: flex;
-  min-height: 192px;
+  min-height: 176px;
 }
 .dsb-card {
   position: relative;
@@ -310,7 +310,7 @@ body[data-ds-dark-theme] .dsb-page {
   width: 100%;
   display: flex;
   flex-direction: column;
-  min-height: 192px;
+  min-height: 176px;
   padding: 13px 15px 12px;
   border: 0;
   border-radius: 15px;
@@ -408,9 +408,9 @@ body[data-ds-dark-theme] .dsb-card {
 .dsb-meta {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
   min-width: 0;
-  margin-top: 11px;
+  margin-top: 9px;
 }
 .dsb-meta-line {
   display: flex;
@@ -443,7 +443,7 @@ body[data-ds-dark-theme] .dsb-card {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-top: 14px;
+  margin-top: 12px;
 }
 .dsb-status {
   display: inline-flex;
