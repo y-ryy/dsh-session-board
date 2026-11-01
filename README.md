@@ -7,6 +7,7 @@ A lightweight session board for the [DeepSeek Harness](https://github.com/deepse
 ## Features
 
 - **Workspace groups** — sessions are grouped by registered workspace; sessions without a workspace fall into an “Ungrouped” group.
+- **Fork-aware** — user forks (`parentSession` without `origin: subagent`) are shown as independent session cards; only true subagent sessions are hidden.
 - **Live status colors** — running, pending approval / answer, and completed sessions use distinct card surfaces.
 - **Pin to top** — pins use the official Workspace pin registry, shared with the sidebar’s “Pin session” action.
 - **Collapsed lower section** — the workspace section below the pinned bar shows only running and pending sessions by default. A setting can reveal every session card.

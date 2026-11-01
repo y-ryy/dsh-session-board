@@ -1110,7 +1110,7 @@ body[data-ds-dark-theme] .dsb-card {
       if (ready && list && list.ids) {
         for (const sessionId of list.ids) {
           const summary = list.byId && list.byId[sessionId]
-          if (!summary || summary.blank || summary.parentId || summary.origin === 'subagent' || archived.has(sessionId)) continue
+          if (!summary || summary.blank || summary.origin === 'subagent' || archived.has(sessionId)) continue
           const workspace = workspaceBySession.get(sessionId)
           const displayTitle = summary.displayTitle || summary.title || sessionId
           const rawStatus = statusMap && typeof statusMap.get === 'function' ? statusMap.get(sessionId) : undefined
