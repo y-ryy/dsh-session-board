@@ -10,7 +10,7 @@ window.__ModuleLoader__.load({
     const zh = {
       'panel.title': '会话看板',
       'panel.subtitle': '按工作区查看全部会话 · 卡片颜色表示当前状态',
-      'panel.subtitleCollapsed': '下方仅显示运行中与待审批的会话 · 其他卡片已收起',
+      'panel.subtitleCollapsed': '仅显示活跃会话 · 卡片颜色表示当前状态',
       'settings.title': '看板下方卡片',
       'settings.caption': '关闭时，下方只显示运行中和待审批的会话；打开后显示全部会话卡片。',
       'settings.sectionLabel': '会话看板',
@@ -56,13 +56,26 @@ window.__ModuleLoader__.load({
       'empty.title': '还没有会话',
       'empty.body': '在左侧工作区新建会话后，会显示在这里。',
       'error.pin': '置顶操作失败，请重试。',
-      'back.label': '返回看板'
+      'back.label': '返回看板',
+      'view.active': '活跃',
+      'view.all': '全部',
+      'empty.activeTitle': '当前没有活跃会话',
+      'empty.activeBody': '切到「全部」查看已退场的已完成会话。',
+      'settings.activeWindowTitle': '活跃区时间窗口',
+      'settings.activeWindowCaption': '仅对已完成会话生效：超过该时长仍无活动，就移出「活跃」视图（运行中/待审批始终活跃）。',
+      'settings.activeWindow30': '30 分钟',
+      'settings.activeWindow60': '1 小时',
+      'settings.activeWindowNever': '一直显示',
+      'card.dismissActive': '从活跃区移除',
+      'settings.pinnedAlwaysTitle': '固定栏常驻',
+      'settings.pinnedAlwaysCaption': '固定栏始终显示在看板顶部；关闭后仅在有固定会话时出现。',
+      'pinned.empty': '暂无固定会话 · 悬停卡片点图钉固定'
     }
 
     const en = {
       'panel.title': 'Session Board',
       'panel.subtitle': 'All sessions by workspace · card color shows the current state',
-      'panel.subtitleCollapsed': 'Only running and pending sessions below · other cards are collapsed',
+      'panel.subtitleCollapsed': 'Active sessions only · card color shows the current state',
       'settings.title': 'Cards below the board',
       'settings.caption': 'When off, only running and pending sessions appear below; turn on to show all session cards.',
       'settings.sectionLabel': 'Session Board',
@@ -108,23 +121,108 @@ window.__ModuleLoader__.load({
       'empty.title': 'No sessions yet',
       'empty.body': 'Create a session in a workspace and it will appear here.',
       'error.pin': 'Could not update the pin. Please try again.',
-      'back.label': 'Back to board'
+      'back.label': 'Back to board',
+      'view.active': 'Active',
+      'view.all': 'All',
+      'empty.activeTitle': 'No active sessions',
+      'empty.activeBody': 'Switch to All to see completed sessions.',
+      'settings.activeWindowTitle': 'Active window',
+      'settings.activeWindowCaption': 'Applies to completed sessions only: once idle beyond this, they leave the Active view (running / pending always stay active).',
+      'settings.activeWindow30': '30 minutes',
+      'settings.activeWindow60': '1 hour',
+      'settings.activeWindowNever': 'Always',
+      'card.dismissActive': 'Remove from active',
+      'settings.pinnedAlwaysTitle': 'Always show pinned bar',
+      'settings.pinnedAlwaysCaption': 'Keep the pinned bar at the top of the board; when off it only appears with pinned sessions.',
+      'pinned.empty': 'No pinned sessions · hover a card and click the pin'
     }
 
     const CSS = `
+body {
+  /* Neumorphic material tokens (self-contained; adopt dsh-neu-theme values when active). */
+  --dsb-raise-sm: var(--dsh-neu-raise-sm, inset 0 1px 0 rgba(255,255,255,.72), 0 1px 2px rgba(122,118,108,.14), 3px 3px 8px rgba(122,118,108,.14), -3px -3px 8px rgba(255,255,255,.7));
+  --dsb-raise: var(--dsh-neu-raise, inset 0 1px 0 rgba(255,255,255,.82), 0 1px 2px rgba(122,118,108,.16), 6px 6px 14px rgba(122,118,108,.18), -6px -6px 14px rgba(255,255,255,.8));
+  --dsb-card-raise: var(--dsh-neu-card-raise, inset 0 1px 0 rgba(255,255,255,.8), 0 0 0 1px rgba(122,118,108,.05), 0 0 8px 1px rgba(122,118,108,.08), 4px 4px 12px rgba(122,118,108,.12), -4px -4px 12px rgba(255,255,255,.7));
+  --dsb-card-raise-strong: var(--dsh-neu-card-raise-strong, inset 0 1px 0 rgba(255,255,255,.9), 0 0 0 1px rgba(122,118,108,.07), 0 0 16px 1px rgba(122,118,108,.12), 9px 9px 22px rgba(122,118,108,.2), -8px -8px 22px rgba(255,255,255,.85));
+  --dsb-inset: var(--dsh-neu-inset, inset 3px 3px 8px rgba(122,118,108,.13), inset -3px -3px 8px rgba(255,255,255,.68));
+  --dsb-inset-sm: var(--dsh-neu-inset-sm, inset 0 0 0 1px rgba(122,118,108,.1));
+  --dsb-inset-focus: var(--dsh-neu-inset-focus, inset 4px 4px 10px rgba(122,118,108,.2), inset -4px -4px 10px rgba(255,255,255,.8));
+}
+body[data-ds-dark-theme] {
+  --dsb-raise-sm: var(--dsh-neu-raise-sm, inset 0 1px 0 rgba(255,255,255,.08), 0 1px 2px rgba(0,0,0,.5), 3px 3px 8px rgba(0,0,0,.42), -3px -3px 8px rgba(255,255,255,.035));
+  --dsb-raise: var(--dsh-neu-raise, inset 0 1px 0 rgba(255,255,255,.1), 0 1px 2px rgba(0,0,0,.55), 6px 6px 14px rgba(0,0,0,.5), -6px -6px 14px rgba(255,255,255,.045));
+  --dsb-card-raise: var(--dsh-neu-card-raise, inset 0 1px 0 rgba(255,255,255,.09), 0 0 0 1px rgba(0,0,0,.2), 0 0 10px 1px rgba(0,0,0,.26), 4px 4px 12px rgba(0,0,0,.42), -4px -4px 12px rgba(255,255,255,.03));
+  --dsb-card-raise-strong: var(--dsh-neu-card-raise-strong, inset 0 1px 0 rgba(255,255,255,.12), 0 0 0 1px rgba(0,0,0,.26), 0 0 18px 1px rgba(0,0,0,.34), 9px 9px 22px rgba(0,0,0,.5), -8px -8px 22px rgba(255,255,255,.04));
+  --dsb-inset: var(--dsh-neu-inset, inset 3px 3px 8px rgba(0,0,0,.55), inset -3px -3px 8px rgba(255,255,255,.05));
+  --dsb-inset-sm: var(--dsh-neu-inset-sm, inset 0 0 0 1px rgba(0,0,0,.3));
+  --dsb-inset-focus: var(--dsh-neu-inset-focus, inset 4px 4px 10px rgba(0,0,0,.6), inset -4px -4px 10px rgba(255,255,255,.07));
+}
+/* Neumorphism palette — cream (light) / ink (dark), applied to the board and its
+   settings page only, so the panel carries the dsh-neu-theme look everywhere. */
+.dsb-page, .dsb-settings-page {
+  --dsw-alias-bg-base: #eae8e3;
+  --dsw-alias-bg-layer-1: #eae8e3;
+  --dsw-alias-bg-layer-2: #e3e0d9;
+  --dsw-alias-bg-layer-3: #dad6cd;
+  --dsw-alias-bg-overlay: #f1efe9;
+  --dsw-alias-label-primary: #3b3a36;
+  --dsw-alias-label-secondary: #6f6d66;
+  --dsw-alias-label-tertiary: #928f86;
+  --dsw-alias-label-primary-foreground: #ffffff;
+  --dsw-alias-brand-primary: #7180d5;
+  --dsw-alias-border-l1: rgba(92,89,80,.1);
+  --dsw-alias-border-l2: rgba(92,89,80,.16);
+  --dsw-alias-state-success-primary: #6f9e7c;
+  --dsw-alias-state-success-tertiary: #e2ede4;
+  --dsw-alias-state-warn-primary: #cf9857;
+  --dsw-alias-state-warn-tertiary: #f6ecdb;
+  --dsw-alias-state-error-primary: #cf6f67;
+  --dsw-alias-state-business-tertiary: #e3e7f8;
+  --dsw-alias-interactive-bg-hover: rgba(92,89,80,.07);
+  --dsb-running-bg: #dceaf5;
+  --dsb-running-accent: #4f7fa8;
+}
+body[data-ds-dark-theme] .dsb-page,
+body[data-ds-dark-theme] .dsb-settings-page {
+  --dsw-alias-bg-base: #21242b;
+  --dsw-alias-bg-layer-1: #21242b;
+  --dsw-alias-bg-layer-2: #2a2e38;
+  --dsw-alias-bg-layer-3: #333846;
+  --dsw-alias-bg-overlay: #272b35;
+  --dsw-alias-label-primary: #e7e9ef;
+  --dsw-alias-label-secondary: #a3a8b5;
+  --dsw-alias-label-tertiary: #7e8494;
+  --dsw-alias-label-primary-foreground: #1e2129;
+  --dsw-alias-brand-primary: #8b99e8;
+  --dsw-alias-border-l1: rgba(255,255,255,.07);
+  --dsw-alias-border-l2: rgba(255,255,255,.12);
+  --dsw-alias-state-success-primary: #84b48f;
+  --dsw-alias-state-success-tertiary: #2d3f34;
+  --dsw-alias-state-warn-primary: #d9a76a;
+  --dsw-alias-state-warn-tertiary: #4a3c28;
+  --dsw-alias-state-error-primary: #dd867d;
+  --dsw-alias-state-business-tertiary: #343a4c;
+  --dsw-alias-interactive-bg-hover: rgba(255,255,255,.05);
+  --dsb-running-bg: #26374a;
+  --dsb-running-accent: #8fb9dd;
+}
 .dsb-page {
   height: 100%;
   min-height: 0;
   display: flex;
   flex-direction: column;
   color: var(--dsw-alias-label-primary);
-  background: transparent;
-  --dsb-running-bg: #e2edf6;
-  --dsb-running-accent: #3e7ea8;
+  background-color: var(--dsw-alias-bg-base);
+  background-image:
+    radial-gradient(125% 72% at 50% -18%, color-mix(in srgb, var(--dsw-alias-brand-primary) 8%, transparent), transparent 60%),
+    linear-gradient(158deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, 0) 34%),
+    url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27160%27 height=%27160%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.8%27 numOctaves=%272%27 stitchTiles=%27stitch%27/%3E%3CfeColorMatrix type=%27saturate%27 values=%270%27/%3E%3C/filter%3E%3Crect width=%27160%27 height=%27160%27 filter=%27url(%23n)%27 opacity=%270.05%27/%3E%3C/svg%3E");
 }
 body[data-ds-dark-theme] .dsb-page {
-  --dsb-running-bg: #293b4c;
-  --dsb-running-accent: #7fb7d9;
+  background-image:
+    radial-gradient(125% 72% at 50% -18%, color-mix(in srgb, var(--dsw-alias-brand-primary) 12%, transparent), transparent 60%),
+    linear-gradient(158deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, 0) 34%),
+    url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27160%27 height=%27160%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.8%27 numOctaves=%272%27 stitchTiles=%27stitch%27/%3E%3CfeColorMatrix type=%27saturate%27 values=%270%27/%3E%3C/filter%3E%3Crect width=%27160%27 height=%27160%27 filter=%27url(%23n)%27 opacity=%270.08%27/%3E%3C/svg%3E");
 }
 .dsb-header {
   flex: none;
@@ -149,13 +247,20 @@ body[data-ds-dark-theme] .dsb-page {
   color: var(--dsw-alias-label-primary);
   font-size: 24px;
   line-height: 1.25;
-  font-weight: 650;
+  font-weight: 680;
   letter-spacing: -.5px;
 }
 .dsb-subtitle {
   margin: 8px 0 0;
   color: var(--dsw-alias-label-secondary);
   font-size: 12.5px;
+}
+.dsb-head-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 .dsb-legend {
   display: flex;
@@ -169,12 +274,12 @@ body[data-ds-dark-theme] .dsb-page {
   gap: 7px;
   height: 30px;
   padding: 0 11px;
-  border-radius: 9px;
-  background: var(--dsw-alias-bg-layer-2);
+  border-radius: 10px;
+  background: var(--dsw-alias-bg-layer-1);
   color: var(--dsw-alias-label-secondary);
   font-size: 11.5px;
   white-space: nowrap;
-  box-shadow: var(--dsh-neu-raise-sm, 0 1px 2px rgba(0, 0, 0, .07));
+  box-shadow: var(--dsb-raise-sm);
 }
 .dsb-legend-item b {
   color: var(--dsw-alias-label-primary);
@@ -185,6 +290,7 @@ body[data-ds-dark-theme] .dsb-page {
   height: 7px;
   border-radius: 50%;
   flex: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 14%, transparent);
 }
 .dsb-dot--running { background: var(--dsb-running-accent); }
 .dsb-dot--pending { background: var(--dsw-alias-state-warn-primary); }
@@ -215,10 +321,16 @@ body[data-ds-dark-theme] .dsb-page {
 .dsb-pinned {
   margin-bottom: 25px;
   padding: 14px 16px 17px;
-  border-radius: 17px;
-  background: var(--dsw-alias-bg-layer-2);
-  box-shadow: var(--dsh-neu-inset, inset 0 0 0 1px var(--dsw-alias-border-l1));
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--dsw-alias-bg-layer-1) 55%, var(--dsw-alias-bg-base));
+  box-shadow: var(--dsb-inset), inset 0 0 0 1px var(--dsw-alias-border-l1);
 }
+.dsb-pinned-empty {
+  padding: 4px 2px 2px;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 11.5px;
+}
+.dsb-empty { padding: 0 16px; }
 .dsb-pinned-head {
   display: flex;
   align-items: center;
@@ -243,24 +355,33 @@ body[data-ds-dark-theme] .dsb-page {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--dsw-alias-bg-layer-1);
+  background: var(--dsw-alias-bg-layer-2);
   color: var(--dsw-alias-brand-primary);
   font-size: 10.5px;
-  box-shadow: var(--dsh-neu-raise-sm, 0 1px 2px rgba(0, 0, 0, .07));
+  box-shadow: var(--dsb-inset-sm);
 }
 .dsb-pinned-note {
   color: var(--dsw-alias-label-tertiary);
   font-size: 10.5px;
 }
-.dsb-group { margin-bottom: 27px; }
+.dsb-group {
+  margin-bottom: 24px;
+  padding: 14px 16px 16px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--dsw-alias-bg-layer-1) 55%, var(--dsw-alias-bg-base));
+  box-shadow: var(--dsb-inset), inset 0 0 0 1px var(--dsw-alias-border-l1);
+}
 .dsb-group-head {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 0 2px 9px;
-  margin-bottom: 11px;
-  border-bottom: 1px solid var(--dsw-alias-border-l1);
+  gap: 12px;
+  padding: 6px 8px;
+  margin: -4px -6px 12px;
+  border-radius: 10px;
+  background: transparent;
+  box-shadow: none;
+  transition: background .15s ease;
 }
 .dsb-group-title {
   display: flex;
@@ -271,7 +392,7 @@ body[data-ds-dark-theme] .dsb-page {
   font-size: 13px;
   font-weight: 750;
 }
-.dsb-group-title svg { color: var(--dsw-alias-brand-primary); opacity: .78; flex: none; }
+.dsb-group-title svg { color: var(--dsw-alias-brand-primary); opacity: .82; flex: none; }
 .dsb-group-count {
   min-width: 19px;
   height: 18px;
@@ -284,12 +405,14 @@ body[data-ds-dark-theme] .dsb-page {
   color: var(--dsw-alias-label-secondary);
   font-size: 10.5px;
   font-weight: 700;
+  box-shadow: var(--dsb-inset-sm);
 }
 .dsb-group-path {
   max-width: 48%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  margin-left: auto;
   color: var(--dsw-alias-label-tertiary);
   font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
   font-size: 10px;
@@ -297,7 +420,7 @@ body[data-ds-dark-theme] .dsb-page {
 .dsb-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
-  gap: 14px;
+  gap: 16px;
 }
 .dsb-card-wrap {
   position: relative;
@@ -311,29 +434,33 @@ body[data-ds-dark-theme] .dsb-page {
   display: flex;
   flex-direction: column;
   min-height: 154px;
-  padding: 13px 15px 12px;
+  padding: 14px 16px 13px;
   border: 0;
-  border-radius: 15px;
+  border-radius: 18px;
   background-color: var(--status-bg);
-  background-image: linear-gradient(145deg, rgba(255, 255, 255, .6), rgba(255, 255, 255, 0) 42%);
-  box-shadow: var(--dsh-neu-card-raise, 0 1px 4px rgba(0, 0, 0, .08));
+  background-image: linear-gradient(145deg, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 44%);
+  box-shadow: var(--dsb-card-raise);
   cursor: pointer;
   outline: none;
   overflow: hidden;
-  transition: transform .18s ease, box-shadow .18s ease;
+  transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease;
 }
 body[data-ds-dark-theme] .dsb-card {
-  background-image: linear-gradient(145deg, rgba(255, 255, 255, .07), rgba(255, 255, 255, 0) 42%);
+  background-image: linear-gradient(145deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, 0) 44%);
 }
-.dsb-card--running { --status-bg: var(--dsb-running-bg); }
-.dsb-card--pending { --status-bg: var(--dsw-alias-state-warn-tertiary); }
-.dsb-card--done { --status-bg: var(--dsw-alias-state-success-tertiary); }
+.dsb-card--running { --status-bg: color-mix(in srgb, var(--dsb-running-bg) 84%, var(--dsw-alias-bg-layer-1)); }
+.dsb-card--pending { --status-bg: color-mix(in srgb, var(--dsw-alias-state-warn-tertiary) 84%, var(--dsw-alias-bg-layer-1)); }
+.dsb-card--done { --status-bg: color-mix(in srgb, var(--dsw-alias-state-success-tertiary) 84%, var(--dsw-alias-bg-layer-1)); }
 .dsb-card:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--dsh-neu-card-raise-strong, 0 5px 15px rgba(0, 0, 0, .12));
+  transform: translateY(-2px);
+  box-shadow: var(--dsb-card-raise-strong);
+}
+.dsb-card:active {
+  transform: translateY(0);
+  box-shadow: var(--dsb-inset-sm);
 }
 .dsb-card:focus-visible {
-  box-shadow: 0 0 0 2px var(--dsw-alias-brand-primary), var(--dsh-neu-card-raise-strong, 0 5px 15px rgba(0, 0, 0, .12));
+  box-shadow: 0 0 0 2px var(--dsw-alias-brand-primary), var(--dsb-card-raise-strong);
 }
 .dsb-card-top {
   display: flex;
@@ -373,18 +500,19 @@ body[data-ds-dark-theme] .dsb-card {
   background: var(--dsw-alias-bg-layer-1);
   color: var(--dsw-alias-label-tertiary);
   cursor: pointer;
-  box-shadow: var(--dsh-neu-raise-sm, 0 1px 2px rgba(0, 0, 0, .07));
+  box-shadow: var(--dsb-raise-sm);
   transition: color .15s ease, box-shadow .15s ease, transform .15s ease;
 }
 .dsb-pin:hover {
   color: var(--dsw-alias-brand-primary);
   transform: translateY(-1px);
-  box-shadow: var(--dsh-neu-raise, 0 2px 5px rgba(0, 0, 0, .1));
+  box-shadow: var(--dsb-raise);
 }
+.dsb-pin:active { transform: translateY(0); box-shadow: var(--dsb-inset-sm); }
 .dsb-pin[aria-pressed="true"] {
   color: var(--dsw-alias-brand-primary);
   background: var(--dsw-alias-state-business-tertiary);
-  box-shadow: var(--dsh-neu-inset, inset 0 0 0 1px var(--dsw-alias-border-l2));
+  box-shadow: var(--dsb-inset);
 }
 .dsb-pin:disabled {
   opacity: .5;
@@ -450,13 +578,13 @@ body[data-ds-dark-theme] .dsb-card {
   align-items: center;
   gap: 6px;
   height: 22px;
-  padding: 0 8px;
+  padding: 0 9px;
   border-radius: 999px;
-  background: var(--dsw-alias-bg-layer-1);
+  background: color-mix(in srgb, var(--dsw-alias-bg-base) 45%, var(--dsw-alias-bg-layer-1));
   font-size: 10.5px;
   font-weight: 700;
   white-space: nowrap;
-  box-shadow: var(--dsh-neu-inset-sm, inset 0 0 0 1px var(--dsw-alias-border-l1));
+  box-shadow: var(--dsb-inset-sm);
 }
 .dsb-status--running { color: var(--dsb-running-accent); }
 .dsb-status--pending { color: var(--dsw-alias-state-warn-primary); }
@@ -500,21 +628,21 @@ body[data-ds-dark-theme] .dsb-card {
 .dsb-empty-icon {
   width: 58px;
   height: 58px;
-  border-radius: 18px;
+  border-radius: 19px;
   display: grid;
   place-items: center;
   color: var(--dsw-alias-brand-primary);
-  background: var(--dsw-alias-bg-layer-2);
-  box-shadow: var(--dsh-neu-raise-sm, 0 1px 2px rgba(0, 0, 0, .07));
+  background: var(--dsw-alias-bg-layer-1);
+  box-shadow: var(--dsb-raise);
   margin-bottom: 3px;
 }
 .dsb-empty strong { color: var(--dsw-alias-label-secondary); font-size: 14px; }
 .dsb-empty span { font-size: 12px; }
 .dsb-back {
   height: 30px;
-  padding: 0 10px;
+  padding: 0 11px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 9px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -523,15 +651,15 @@ body[data-ds-dark-theme] .dsb-card {
   font-size: 11.5px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: var(--dsh-neu-raise-sm, 0 1px 2px rgba(0, 0, 0, .07));
+  box-shadow: var(--dsb-raise-sm);
   transition: box-shadow .15s ease, transform .15s ease;
 }
 .dsb-back:hover {
-  box-shadow: var(--dsh-neu-raise, 0 2px 5px rgba(0, 0, 0, .1));
+  box-shadow: var(--dsb-raise);
   transform: translateX(-1px);
 }
 .dsb-back:active {
-  box-shadow: var(--dsh-neu-inset, inset 0 0 0 1px var(--dsw-alias-border-l2));
+  box-shadow: var(--dsb-inset);
   transform: none;
 }
 .dsb-card-hint {
@@ -551,7 +679,7 @@ body[data-ds-dark-theme] .dsb-card {
   background: var(--dsw-alias-bg-layer-2);
   color: var(--dsw-alias-label-tertiary);
   font-size: 11.5px;
-  box-shadow: var(--dsh-neu-inset-sm, inset 0 0 0 1px var(--dsw-alias-border-l1));
+  box-shadow: var(--dsb-inset-sm);
 }
 .dsb-collapsed-button {
   flex: none;
@@ -567,11 +695,13 @@ body[data-ds-dark-theme] .dsb-card {
 .dsb-collapsed-button:hover { background: var(--dsw-alias-interactive-bg-hover); }
 .dsb-approval-drawer {
   margin: -8px 0 26px;
-  padding: 16px 17px;
+  padding: 17px 18px;
   border: 1px solid var(--dsw-alias-border-l1);
-  border-radius: 16px;
-  background: var(--dsw-alias-bg-layer-1);
-  box-shadow: var(--dsh-neu-card-raise-strong, 0 8px 24px rgba(0, 0, 0, .12));
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--dsw-alias-bg-layer-1) 86%, transparent);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  box-shadow: var(--dsb-card-raise-strong);
   animation: dsb-drawer-in .2s ease-out;
 }
 @keyframes dsb-drawer-in {
@@ -584,9 +714,9 @@ body[data-ds-dark-theme] .dsb-card {
   gap: 8px;
 }
 .dsb-approval-icon {
-  width: 22px;
-  height: 22px;
-  border-radius: 7px;
+  width: 23px;
+  height: 23px;
+  border-radius: 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -595,6 +725,7 @@ body[data-ds-dark-theme] .dsb-card {
   color: var(--dsw-alias-state-warn-primary);
   font-size: 11px;
   font-weight: 800;
+  box-shadow: var(--dsb-raise-sm);
 }
 .dsb-approval-title {
   color: var(--dsw-alias-state-warn-primary);
@@ -638,6 +769,7 @@ body[data-ds-dark-theme] .dsb-card {
   color: var(--dsw-alias-label-primary);
   font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
   font-size: 10.5px;
+  box-shadow: var(--dsb-inset-sm);
 }
 .dsb-approval-reason {
   margin: 9px 0 0;
@@ -650,8 +782,8 @@ body[data-ds-dark-theme] .dsb-card {
 .dsb-approval-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 14px; }
 .dsb-btn {
   height: 32px;
-  padding: 0 13px;
-  border-radius: 8px;
+  padding: 0 14px;
+  border-radius: 9px;
   border: 0;
   font-size: 11.5px;
   font-weight: 650;
@@ -662,15 +794,17 @@ body[data-ds-dark-theme] .dsb-card {
 .dsb-btn--primary {
   background: var(--dsw-alias-brand-primary);
   color: var(--dsw-alias-label-primary-foreground);
-  box-shadow: var(--dsh-neu-raise-sm, 0 1px 2px rgba(0, 0, 0, .07));
+  box-shadow: var(--dsb-raise-sm);
 }
-.dsb-btn--primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: var(--dsh-neu-raise, 0 2px 5px rgba(0, 0, 0, .1)); }
+.dsb-btn--primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: var(--dsb-raise); }
+.dsb-btn--primary:active:not(:disabled) { transform: translateY(0); box-shadow: var(--dsb-inset-sm); }
 .dsb-btn--ghost {
   background: var(--dsw-alias-bg-layer-2);
   color: var(--dsw-alias-label-secondary);
-  box-shadow: var(--dsh-neu-raise-sm, 0 1px 2px rgba(0, 0, 0, .07));
+  box-shadow: var(--dsb-raise-sm);
 }
-.dsb-btn--ghost:hover:not(:disabled) { color: var(--dsw-alias-label-primary); transform: translateY(-1px); }
+.dsb-btn--ghost:hover:not(:disabled) { color: var(--dsw-alias-label-primary); transform: translateY(-1px); box-shadow: var(--dsb-raise); }
+.dsb-btn--ghost:active:not(:disabled) { transform: translateY(0); box-shadow: var(--dsb-inset-sm); }
 .dsb-approval-error {
   margin-top: 11px;
   color: var(--dsw-alias-state-error-primary);
@@ -682,29 +816,33 @@ body[data-ds-dark-theme] .dsb-card {
 .dsb-question-detail {
   max-height: 180px;
   overflow: auto;
-  padding: 9px 10px;
-  border-radius: 8px;
+  padding: 10px 11px;
+  border-radius: 10px;
   background: var(--dsw-alias-bg-layer-2);
   color: var(--dsw-alias-label-secondary);
   font-size: 11px;
   line-height: 1.6;
   white-space: pre-wrap;
+  box-shadow: var(--dsb-inset-sm);
 }
 .dsb-question-options { display: flex; flex-wrap: wrap; gap: 7px; }
 .dsb-option {
-  padding: 7px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--dsw-alias-border-l1);
+  padding: 7px 11px;
+  border-radius: 9px;
+  border: 0;
   background: var(--dsw-alias-bg-layer-2);
   color: var(--dsw-alias-label-secondary);
   font-size: 11.5px;
   cursor: pointer;
   text-align: left;
+  box-shadow: var(--dsb-raise-sm);
+  transition: box-shadow .15s ease, color .15s ease;
 }
+.dsb-option:hover { color: var(--dsw-alias-label-primary); box-shadow: var(--dsb-raise); }
 .dsb-option[aria-pressed="true"] {
-  border-color: var(--dsw-alias-brand-primary);
   background: var(--dsw-alias-state-business-tertiary);
   color: var(--dsw-alias-label-primary);
+  box-shadow: var(--dsb-inset);
 }
 .dsb-question-submit { align-self: flex-start; }
 .dsb-settings-page {
@@ -727,10 +865,9 @@ body[data-ds-dark-theme] .dsb-card {
 }
 .dsb-settings-card {
   padding: 2px 18px;
-  border: 1px solid var(--dsw-alias-border-l1);
-  border-radius: 16px;
+  border-radius: 18px;
   background: var(--dsw-alias-bg-layer-1);
-  box-shadow: var(--dsh-neu-card-raise, 0 1px 4px rgba(0, 0, 0, .08));
+  box-shadow: var(--dsb-card-raise);
 }
 .dsb-settings-row {
   display: flex;
@@ -738,6 +875,9 @@ body[data-ds-dark-theme] .dsb-card {
   justify-content: space-between;
   gap: 18px;
   padding: 16px 0;
+}
+.dsb-settings-row + .dsb-settings-row {
+  border-top: 1px solid var(--dsw-alias-border-l1);
 }
 .dsb-settings-copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .dsb-settings-title { color: var(--dsw-alias-label-primary); font-size: 14px; line-height: 22px; }
@@ -752,7 +892,7 @@ body[data-ds-dark-theme] .dsb-card {
   border-radius: 999px;
   background: var(--dsw-alias-bg-layer-3);
   cursor: pointer;
-  box-shadow: var(--dsh-neu-inset-sm, inset 0 0 0 1px var(--dsw-alias-border-l1));
+  box-shadow: var(--dsb-inset-sm);
   transition: background .18s ease;
 }
 .dsb-switch::after {
@@ -762,25 +902,106 @@ body[data-ds-dark-theme] .dsb-card {
   height: 18px;
   border-radius: 50%;
   background: var(--dsw-alias-bg-layer-1);
-  box-shadow: var(--dsh-neu-raise-sm, 0 1px 2px rgba(0, 0, 0, .1));
+  box-shadow: var(--dsb-raise-sm);
   transition: transform .18s ease;
 }
 .dsb-switch[aria-checked="true"] { background: var(--dsw-alias-brand-primary); }
 .dsb-switch[aria-checked="true"]::after { transform: translateX(16px); }
+:root { --dsb-running-accent: #3e7ea8; }
+body[data-ds-dark-theme] { --dsb-running-accent: #7fb7d9; }
+.dsb-viewswitch {
+  display: inline-flex;
+  padding: 3px;
+  gap: 3px;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--dsw-alias-bg-layer-2) 65%, var(--dsw-alias-bg-base));
+  box-shadow: var(--dsb-inset-sm);
+}
+.dsb-view-btn {
+  border: 0;
+  height: 26px;
+  padding: 0 13px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+.dsb-view-btn:hover { color: var(--dsw-alias-label-primary); }
+.dsb-view-btn--active {
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-brand-primary);
+  box-shadow: var(--dsb-raise-sm);
+}
+.dsb-select {
+  flex: none;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 9px;
+  border: 0;
+  background: var(--dsw-alias-bg-layer-2);
+  color: var(--dsw-alias-label-primary);
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: var(--dsb-inset-sm);
+}
+.dsb-dismiss {
+  position: absolute;
+  top: 13px;
+  right: 50px;
+  z-index: 3;
+  width: 29px;
+  height: 29px;
+  border: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--dsb-raise-sm);
+  transition: color .15s ease, box-shadow .15s ease;
+}
+.dsb-dismiss:hover { color: var(--dsw-alias-state-error-primary); box-shadow: var(--dsb-raise); }
+.dsb-dismiss:active { box-shadow: var(--dsb-inset-sm); }
+.dsb-active { margin-bottom: 27px; padding: 0 16px; }
+.dsb-section-in { animation: dsb-section-in .26s ease; }
+@keyframes dsb-section-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.dsb-group-head--clickable { cursor: pointer; user-select: none; }
+.dsb-group-head--clickable:hover { background: var(--dsw-alias-interactive-bg-hover); }
+.dsb-group-head--clickable:hover .dsb-group-title { color: var(--dsw-alias-brand-primary); }
+.dsb-group-caret { flex: none; display: inline-block; color: var(--dsw-alias-label-tertiary); font-size: 11px; margin-left: 8px; padding-left: 8px; transition: transform .26s ease; }
+.dsb-group-caret--collapsed { transform: rotate(-90deg); }
+.dsb-group-body { overflow: hidden; transition: height .28s ease; }
+.dsb-group-body-inner { opacity: 1; transform: none; transition: opacity .2s ease, transform .26s ease; }
+.dsb-group-body--collapsed .dsb-group-body-inner { opacity: 0; transform: translateY(-6px); }
+.dsb-group--collapsed { padding-bottom: 8px; }
+.dsb-group--collapsed .dsb-group-head { margin-bottom: 0; }
 @media (max-width: 760px) {
   .dsb-header { padding: 18px 18px 13px; }
   .dsb-scroll { padding: 4px 18px 30px; }
   .dsb-error { margin-left: 18px; margin-right: 18px; }
   .dsb-legend { justify-content: flex-start; }
+  .dsb-head-right { width: 100%; justify-content: flex-start; }
   .dsb-grid { grid-template-columns: 1fr; }
   .dsb-group-path { display: none; }
   .dsb-back span { display: none; }
   .dsb-back { width: 30px; padding: 0; justify-content: center; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .dsb-card, .dsb-pin, .dsb-back { transition: none; }
-  .dsb-card:hover, .dsb-pin:hover, .dsb-back:hover { transform: none; }
+  .dsb-card, .dsb-pin, .dsb-back, .dsb-option, .dsb-dismiss, .dsb-view-btn { transition: none; }
+  .dsb-card:hover, .dsb-pin:hover, .dsb-back:hover, .dsb-option:hover { transform: none; }
   .dsb-loading-dots i { animation: none; }
+  .dsb-section-in { animation: none; }
+  .dsb-group-body, .dsb-group-caret, .dsb-group-body-inner { transition: none; }
 }
 `
 
@@ -805,13 +1026,143 @@ body[data-ds-dark-theme] .dsb-card {
     function useShowAllCards() {
       const [value, setValue] = React.useState(showAllCards)
       React.useEffect(() => {
-        const listener = () => setValue(showAllCards)
+        const listener = () => setValue(readShowAllCards())
         const onStorage = (event) => { if (event.key === SHOW_ALL_KEY) listener() }
         showAllCardsListeners.add(listener)
         window.addEventListener('storage', onStorage)
         listener()
         return () => {
           showAllCardsListeners.delete(listener)
+          window.removeEventListener('storage', onStorage)
+        }
+      }, [])
+      return value
+    }
+
+    const ACTIVE_WINDOW_KEY = 'session-board:active-window-minutes'
+    const COLLAPSED_WS_KEY = 'session-board:collapsed-workspaces'
+    const ACTIVE_DISMISS_KEY = 'session-board:active-dismissed'
+
+    let activeWindowMinutes = readActiveWindowMinutes()
+    const activeWindowListeners = new Set()
+
+    function readActiveWindowMinutes() {
+      try {
+        const raw = window.localStorage.getItem(ACTIVE_WINDOW_KEY)
+        if (raw === '0' || raw === '30' || raw === '60') return raw
+      } catch (error) { /* local preference only */ }
+      return '60'
+    }
+
+    function setActiveWindowMinutes(value) {
+      const next = value === '0' || value === '30' || value === '60' ? value : '60'
+      if (activeWindowMinutes === next) return
+      activeWindowMinutes = next
+      try { window.localStorage.setItem(ACTIVE_WINDOW_KEY, next) } catch (error) { /* local only */ }
+      for (const listener of activeWindowListeners) {
+        try { listener() } catch (error) { console.error('[session-board] preference listener failed', error) }
+      }
+    }
+
+    function useActiveWindowMinutes() {
+      const [value, setValue] = React.useState(activeWindowMinutes)
+      React.useEffect(() => {
+        const listener = () => setValue(readActiveWindowMinutes())
+        const onStorage = (event) => { if (event.key === ACTIVE_WINDOW_KEY) listener() }
+        activeWindowListeners.add(listener)
+        window.addEventListener('storage', onStorage)
+        listener()
+        return () => {
+          activeWindowListeners.delete(listener)
+          window.removeEventListener('storage', onStorage)
+        }
+      }, [])
+      return value
+    }
+
+    let collapsedWorkspaces = readCollapsedWorkspaces()
+    const collapsedWorkspacesListeners = new Set()
+
+    function readCollapsedWorkspaces() {
+      try {
+        const raw = window.localStorage.getItem(COLLAPSED_WS_KEY)
+        const arr = raw ? JSON.parse(raw) : []
+        return new Set(Array.isArray(arr) ? arr : [])
+      } catch (error) { return new Set() }
+    }
+
+    function setWorkspaceCollapsed(workspaceId, collapsed) {
+      if (collapsed) collapsedWorkspaces.add(workspaceId)
+      else collapsedWorkspaces.delete(workspaceId)
+      try { window.localStorage.setItem(COLLAPSED_WS_KEY, JSON.stringify([...collapsedWorkspaces])) } catch (error) { /* local only */ }
+      for (const listener of collapsedWorkspacesListeners) {
+        try { listener() } catch (error) { console.error('[session-board] preference listener failed', error) }
+      }
+    }
+
+    function useCollapsedWorkspaces() {
+      const [value, setValue] = React.useState(() => new Set(collapsedWorkspaces))
+      React.useEffect(() => {
+        const listener = () => setValue(readCollapsedWorkspaces())
+        const onStorage = (event) => { if (event.key === COLLAPSED_WS_KEY) listener() }
+        collapsedWorkspacesListeners.add(listener)
+        window.addEventListener('storage', onStorage)
+        return () => {
+          collapsedWorkspacesListeners.delete(listener)
+          window.removeEventListener('storage', onStorage)
+        }
+      }, [])
+      return value
+    }
+
+    function readDismissedActive() {
+      try {
+        const raw = window.localStorage.getItem(ACTIVE_DISMISS_KEY)
+        const obj = raw ? JSON.parse(raw) : {}
+        return obj && typeof obj === 'object' && !Array.isArray(obj) ? obj : {}
+      } catch (error) { return {} }
+    }
+
+    function useDismissedActive() {
+      const [value, setValue] = React.useState(readDismissedActive)
+      const dismiss = React.useCallback((id, updatedAt) => {
+        setValue((previous) => {
+          const next = { ...previous, [id]: updatedAt }
+          try { window.localStorage.setItem(ACTIVE_DISMISS_KEY, JSON.stringify(next)) } catch (error) { /* local only */ }
+          return next
+        })
+      }, [])
+      return [value, dismiss]
+    }
+
+    const PINNED_ALWAYS_KEY = 'session-board:pinned-always'
+    let pinnedAlways = readPinnedAlways()
+    const pinnedAlwaysListeners = new Set()
+
+    function readPinnedAlways() {
+      try { return window.localStorage.getItem(PINNED_ALWAYS_KEY) !== '0' } catch (error) { return true }
+    }
+
+    function setPinnedAlways(value) {
+      const next = value === true
+      if (pinnedAlways === next) return
+      pinnedAlways = next
+      try { window.localStorage.setItem(PINNED_ALWAYS_KEY, next ? '1' : '0') } catch (error) { /* local only */ }
+      for (const listener of pinnedAlwaysListeners) {
+        try { listener() } catch (error) { console.error('[session-board] preference listener failed', error) }
+      }
+    }
+
+    function usePinnedAlways() {
+      const [value, setValue] = React.useState(pinnedAlways)
+      React.useEffect(() => {
+        const listener = () => setValue(readPinnedAlways())
+        const onStorage = (event) => { if (event.key === PINNED_ALWAYS_KEY) listener() }
+        pinnedAlwaysListeners.add(listener)
+        window.addEventListener('storage', onStorage)
+        listener()
+        return () => {
+          pinnedAlwaysListeners.delete(listener)
           window.removeEventListener('storage', onStorage)
         }
       }, [])
@@ -844,6 +1195,40 @@ body[data-ds-dark-theme] .dsb-card {
       return running ? { key: 'running' } : { key: 'done' }
     }
 
+    function isActiveCard(card, windowMs, now, dismissed) {
+      if (card.status.key === 'running' || card.status.key === 'pending') return true
+      if (windowMs !== 0 && now - (card.updatedAt || 0) > windowMs * 60000) return false
+      const dismissedAt = dismissed && dismissed[card.id]
+      if (dismissedAt !== undefined && dismissedAt >= (card.updatedAt || 0)) return false
+      return true
+    }
+
+    const STATUS_RANK = { pending: 0, running: 1, done: 2 }
+    function byStatusThenRecency(a, b) {
+      return (STATUS_RANK[a.status.key] - STATUS_RANK[b.status.key]) || (b.updatedAt - a.updatedAt)
+    }
+
+    function computeEntrySignal(list, statusMap, workspaceState) {
+      const result = { hasPending: false, hasRunning: false }
+      if (!list || list.phase !== 'ready' || !list.ids) return result
+      const archived = new Set((workspaceState && workspaceState.archivedSessionIds) || [])
+      for (const id of list.ids) {
+        const summary = list.byId && list.byId[id]
+        if (!summary || summary.blank || summary.origin === 'subagent' || archived.has(id)) continue
+        const raw = statusMap && typeof statusMap.get === 'function' ? statusMap.get(id) : undefined
+        const status = deriveCardStatus(summary, raw, statusMap, list)
+        if (status.key === 'pending') result.hasPending = true
+        else if (status.key === 'running') result.hasRunning = true
+        if (result.hasPending && result.hasRunning) break
+      }
+      return result
+    }
+
+    function entryTone(signal) {
+      if (signal.hasPending) return 'var(--dsw-alias-state-warn-primary)'
+      if (signal.hasRunning) return 'var(--dsb-running-accent)'
+      return null
+    }
     function statusLabel(status, t) {
       if (status.key === 'pending') {
         return t(status.pendingKind === 'question' ? 'status.pendingAnswer' : 'status.pendingApproval')
@@ -967,19 +1352,41 @@ body[data-ds-dark-theme] .dsb-card {
 
     function SettingsRow(props) {
       const t = typeof props.t === 'function' ? props.t : (key) => key
-      const enabled = useShowAllCards()
+      const value = useActiveWindowMinutes()
+      const options = [
+        { value: '30', label: t('settings.activeWindow30') },
+        { value: '60', label: t('settings.activeWindow60') },
+        { value: '0', label: t('settings.activeWindowNever') }
+      ]
       return h('div', { className: 'dsb-settings-row' },
         h('div', { className: 'dsb-settings-copy' },
-          h('div', { className: 'dsb-settings-title' }, t('settings.title')),
-          h('div', { className: 'dsb-settings-caption' }, t('settings.caption'))
+          h('div', { className: 'dsb-settings-title' }, t('settings.activeWindowTitle')),
+          h('div', { className: 'dsb-settings-caption' }, t('settings.activeWindowCaption'))
+        ),
+        h('select', {
+          className: 'dsb-select',
+          value,
+          'aria-label': t('settings.activeWindowTitle'),
+          onChange: (event) => setActiveWindowMinutes(event.target.value)
+        }, options.map((option) => h('option', { key: option.value, value: option.value }, option.label)))
+      )
+    }
+
+    function PinnedAlwaysRow(props) {
+      const t = typeof props.t === 'function' ? props.t : (key) => key
+      const enabled = usePinnedAlways()
+      return h('div', { className: 'dsb-settings-row' },
+        h('div', { className: 'dsb-settings-copy' },
+          h('div', { className: 'dsb-settings-title' }, t('settings.pinnedAlwaysTitle')),
+          h('div', { className: 'dsb-settings-caption' }, t('settings.pinnedAlwaysCaption'))
         ),
         h('button', {
           className: 'dsb-switch',
           type: 'button',
           role: 'switch',
           'aria-checked': enabled ? 'true' : 'false',
-          'aria-label': t('settings.title'),
-          onClick: () => setShowAllCards(!enabled)
+          'aria-label': t('settings.pinnedAlwaysTitle'),
+          onClick: () => setPinnedAlways(!enabled)
         })
       )
     }
@@ -990,7 +1397,8 @@ body[data-ds-dark-theme] .dsb-card {
         h('h2', { className: 'dsb-settings-page-title' }, t('settings.pageTitle')),
         h('p', { className: 'dsb-settings-page-caption' }, t('settings.pageCaption')),
         h('div', { className: 'dsb-settings-card' },
-          h(SettingsRow, { t })
+          h(SettingsRow, { t }),
+          h(PinnedAlwaysRow, { t })
         )
       )
     }
@@ -1121,14 +1529,52 @@ body[data-ds-dark-theme] .dsb-card {
 
     function BoardIcon(props) {
       const size = props && props.size ? props.size : 16
+      const list = props.useSessions ? props.useSessions((state) => state) : undefined
+      const statusMap = props.useSessionStatus ? props.useSessionStatus((state) => state) : undefined
+      const workspaceState = props.useWorkspaces ? props.useWorkspaces((state) => state) : undefined
+      const tone = props.active ? null : entryTone(computeEntrySignal(list, statusMap, workspaceState))
       return h('svg', {
         width: size, height: size, viewBox: '0 0 16 16', fill: 'none',
         stroke: 'currentColor', strokeWidth: 1.25, strokeLinecap: 'round',
-        strokeLinejoin: 'round', 'aria-hidden': true
+        strokeLinejoin: 'round', 'aria-hidden': true,
+        style: tone ? { color: tone } : undefined
       },
       h('rect', { x: 1.8, y: 2.4, width: 12.4, height: 11.2, rx: 2 }),
       h('path', { d: 'M5.4 2.4v11.2M9.9 2.4v11.2' }),
       h('path', { d: 'M3.2 5.4h1.4M7.4 5.4h1.4M11.7 5.4h1.1' }))
+    }
+
+    function GroupBody(props) {
+      const ref = React.useRef(null)
+      const mountedRef = React.useRef(false)
+      React.useEffect(() => {
+        const el = ref.current
+        if (!el) return
+        if (!mountedRef.current) {
+          mountedRef.current = true
+          if (props.collapsed) el.style.height = '0px'
+          return
+        }
+        if (props.collapsed) {
+          el.style.height = el.scrollHeight + 'px'
+          void el.offsetHeight
+          el.style.height = '0px'
+        } else {
+          el.style.height = el.scrollHeight + 'px'
+          const onEnd = (event) => {
+            if (event.target !== el || event.propertyName !== 'height') return
+            el.style.height = ''
+            el.removeEventListener('transitionend', onEnd)
+          }
+          el.addEventListener('transitionend', onEnd)
+        }
+      }, [props.collapsed])
+      return h('div', {
+        className: 'dsb-group-body' + (props.collapsed ? ' dsb-group-body--collapsed' : ''),
+        ref,
+        'aria-hidden': props.collapsed ? 'true' : undefined
+      },
+      h('div', { className: 'dsb-group-body-inner' }, props.children))
     }
 
     function SessionCard(props) {
@@ -1138,8 +1584,9 @@ body[data-ds-dark-theme] .dsb-card {
       const t = props.t
       const label = statusLabel(card.status, t)
       const pinLabel = pinned ? t('card.unpin') : t('card.pin')
-      const expandable = props.expandable === true
+      const expandable = card.status.key === 'pending'
       const expanded = props.expanded === true
+      const dismissable = props.dismissable === true
       return h('div', { className: 'dsb-card-wrap' },
         h('article', {
           className: 'dsb-card dsb-card--' + card.status.key,
@@ -1192,7 +1639,19 @@ body[data-ds-dark-theme] .dsb-card {
             event.preventDefault()
             if (!busy) props.onTogglePin(card)
           }
-        }, h(IconPin, { filled: pinned }))
+        }, h(IconPin, { filled: pinned })),
+        dismissable ? h('button', {
+          className: 'dsb-dismiss',
+          type: 'button',
+          'aria-label': t('card.dismissActive'),
+          title: t('card.dismissActive'),
+          onPointerDown: (event) => event.stopPropagation(),
+          onClick: (event) => {
+            event.stopPropagation()
+            event.preventDefault()
+            if (props.onDismiss) props.onDismiss(card)
+          }
+        }, '×') : null
       )
     }
 
@@ -1201,12 +1660,21 @@ body[data-ds-dark-theme] .dsb-card {
       const list = props.useSessions((state) => state)
       const statusMap = props.useSessionStatus((state) => state)
       const workspaceState = props.useWorkspaces((state) => state)
-      const showAllCards = useShowAllCards()
+      const showAll = useShowAllCards()
+      const activeWindowValue = useActiveWindowMinutes()
+      const pinnedAlways = usePinnedAlways()
+      const collapsedWorkspaces = useCollapsedWorkspaces()
+      const [dismissedActive, dismissActive] = useDismissedActive()
       const [busyIds, setBusyIds] = React.useState({})
       const [pinError, setPinError] = React.useState('')
       const [expandedApprovalId, setExpandedApprovalId] = React.useState(null)
       const [approvalBusyId, setApprovalBusyId] = React.useState(null)
       const [approvalError, setApprovalError] = React.useState('')
+      const [now, setNow] = React.useState(() => Date.now())
+      React.useEffect(() => {
+        const intervalId = setInterval(() => setNow(Date.now()), 60000)
+        return () => clearInterval(intervalId)
+      }, [])
 
       const ready = list && list.phase === 'ready' && workspaceState && workspaceState.phase === 'ready'
       const archived = new Set((workspaceState && workspaceState.archivedSessionIds) || [])
@@ -1245,19 +1713,20 @@ body[data-ds-dark-theme] .dsb-card {
       const counts = { running: 0, pending: 0, done: 0 }
       for (const card of cards) counts[card.status.key] += 1
 
+      const windowMs = activeWindowValue === '0' ? 0 : (parseInt(activeWindowValue, 10) || 60)
+
       const byId = new Map(cards.map((card) => [card.id, card]))
       const pinnedCards = pinnedOrder.map((id) => byId.get(id)).filter(Boolean)
       const pinnedIds = new Set(pinnedCards.map((card) => card.id))
       const unpinnedCards = cards.filter((card) => !pinnedIds.has(card.id))
-      const lowerCards = showAllCards
-        ? unpinnedCards
-        : unpinnedCards.filter((card) => card.status.key === 'running' || card.status.key === 'pending')
-      const hiddenCount = unpinnedCards.length - lowerCards.length
-      const expandedCard = pinnedCards.find((card) => card.id === expandedApprovalId && card.status.key === 'pending') || null
+      const activeCards = unpinnedCards
+        .filter((card) => isActiveCard(card, windowMs, now, dismissedActive))
+        .sort(byStatusThenRecency)
+      const expandedCard = cards.find((card) => card.id === expandedApprovalId && card.status.key === 'pending') || null
 
       const groups = []
       for (const workspace of workspaceItems) {
-        const members = lowerCards
+        const members = unpinnedCards
           .filter((card) => card.workspaceId === workspace.workspaceId)
           .sort((a, b) => b.updatedAt - a.updatedAt)
         if (members.length > 0) {
@@ -1269,7 +1738,7 @@ body[data-ds-dark-theme] .dsb-card {
           })
         }
       }
-      const ungrouped = lowerCards
+      const ungrouped = unpinnedCards
         .filter((card) => !card.workspaceId)
         .sort((a, b) => b.updatedAt - a.updatedAt)
       if (ungrouped.length > 0) {
@@ -1294,8 +1763,8 @@ body[data-ds-dark-theme] .dsb-card {
         })
       }
 
-      function handleActivate(card, pinned) {
-        if (pinned && card.status.key === 'pending') {
+      function handleActivate(card) {
+        if (card.status.key === 'pending') {
           if (expandedApprovalId === card.id) {
             setExpandedApprovalId(null)
             setApprovalError('')
@@ -1307,6 +1776,10 @@ body[data-ds-dark-theme] .dsb-card {
           return
         }
         props.openSession(card.id)
+      }
+
+      function toggleWorkspace(workspaceId) {
+        setWorkspaceCollapsed(workspaceId, !collapsedWorkspaces.has(workspaceId))
       }
 
       function answerExpanded(payload) {
@@ -1339,12 +1812,30 @@ body[data-ds-dark-theme] .dsb-card {
           h('div', null,
             h('p', { className: 'dsb-eyebrow' }, 'SESSION BOARD'),
             h('h1', { className: 'dsb-title' }, t('panel.title')),
-            h('p', { className: 'dsb-subtitle' }, t(showAllCards ? 'panel.subtitle' : 'panel.subtitleCollapsed'))
+            h('p', { className: 'dsb-subtitle' }, t(showAll ? 'panel.subtitle' : 'panel.subtitleCollapsed'))
           ),
-          h('div', { className: 'dsb-legend' },
-            h('span', { className: 'dsb-legend-item' }, h('span', { className: 'dsb-dot dsb-dot--running' }), t('status.running'), h('b', null, String(counts.running))),
-            h('span', { className: 'dsb-legend-item' }, h('span', { className: 'dsb-dot dsb-dot--pending' }), t('status.pendingApproval'), h('b', null, String(counts.pending))),
-            h('span', { className: 'dsb-legend-item' }, h('span', { className: 'dsb-dot dsb-dot--done' }), t('status.done'), h('b', null, String(counts.done)))
+          h('div', { className: 'dsb-head-right' },
+            h('div', { className: 'dsb-viewswitch', role: 'tablist', 'aria-label': t('panel.title') },
+              h('button', {
+                className: 'dsb-view-btn' + (showAll ? '' : ' dsb-view-btn--active'),
+                type: 'button',
+                role: 'tab',
+                'aria-selected': showAll ? 'false' : 'true',
+                onClick: () => setShowAllCards(false)
+              }, t('view.active')),
+              h('button', {
+                className: 'dsb-view-btn' + (showAll ? ' dsb-view-btn--active' : ''),
+                type: 'button',
+                role: 'tab',
+                'aria-selected': showAll ? 'true' : 'false',
+                onClick: () => setShowAllCards(true)
+              }, t('view.all'))
+            ),
+            h('div', { className: 'dsb-legend' },
+              h('span', { className: 'dsb-legend-item' }, h('span', { className: 'dsb-dot dsb-dot--running' }), t('status.running'), h('b', null, String(counts.running))),
+              h('span', { className: 'dsb-legend-item' }, h('span', { className: 'dsb-dot dsb-dot--pending' }), t('status.pendingApproval'), h('b', null, String(counts.pending))),
+              h('span', { className: 'dsb-legend-item' }, h('span', { className: 'dsb-dot dsb-dot--done' }), t('status.done'), h('b', null, String(counts.done)))
+            )
           )
         )
       )
@@ -1359,35 +1850,21 @@ body[data-ds-dark-theme] .dsb-card {
         )
       }
 
-      const content = []
-      if (pinnedCards.length > 0) {
-        content.push(h('section', { className: 'dsb-pinned', key: 'pinned' },
-          h('div', { className: 'dsb-pinned-head' },
-            h('div', { className: 'dsb-pinned-title' },
-              h(IconPin, { filled: true }),
-              t('group.pinned'),
-              h('span', { className: 'dsb-pinned-count' }, String(pinnedCards.length))
-            ),
-            h('span', { className: 'dsb-pinned-note' }, t('group.pinnedNote'))
-          ),
-          h('div', { className: 'dsb-grid' },
-            pinnedCards.map((card) => h(SessionCard, {
-              key: card.id,
-              card,
-              pinned: true,
-              busy: !!busyIds[card.id],
-              expandable: card.status.key === 'pending',
-              expanded: expandedApprovalId === card.id,
-              onActivate: (target) => handleActivate(target, true),
-              onTogglePin: togglePin,
-              t
-            }))
-          )
-        ))
-      }
+      const renderCard = (card, options) => h(SessionCard, {
+        key: card.id,
+        card,
+        pinned: options.pinned === true,
+        busy: !!busyIds[card.id],
+        expanded: expandedApprovalId === card.id,
+        dismissable: options.dismissable === true,
+        onActivate: (target) => handleActivate(target),
+        onTogglePin: togglePin,
+        onDismiss: (target) => dismissActive(target.id, target.updatedAt),
+        t
+      })
 
-      if (expandedCard) {
-        content.push(h(ApprovalDrawer, {
+      const renderDrawer = (containerCards) => (expandedCard && containerCards.some((card) => card.id === expandedCard.id))
+        ? h(ApprovalDrawer, {
           key: 'approval-' + expandedCard.id,
           card: expandedCard,
           t,
@@ -1398,32 +1875,24 @@ body[data-ds-dark-theme] .dsb-card {
             setExpandedApprovalId(null)
             setApprovalError('')
           }
-        }))
-      }
+        })
+        : null
 
-      for (const group of groups) {
-        content.push(h('section', { className: 'dsb-group', key: group.key },
-          h('div', { className: 'dsb-group-head' },
-            h('div', { className: 'dsb-group-title' },
-              h(IconFolder, { size: 15 }),
-              group.title,
-              h('span', { className: 'dsb-group-count' }, String(group.cards.length))
+      const content = []
+      if (pinnedCards.length > 0 || pinnedAlways) {
+        content.push(h('section', { className: 'dsb-pinned', key: 'pinned' },
+          h('div', { className: 'dsb-pinned-head' },
+            h('div', { className: 'dsb-pinned-title' },
+              h(IconPin, { filled: true }),
+              t('group.pinned'),
+              h('span', { className: 'dsb-pinned-count' }, String(pinnedCards.length))
             ),
-            group.path ? h('div', { className: 'dsb-group-path', title: group.path }, group.path) : null
+            h('span', { className: 'dsb-pinned-note' }, t('group.pinnedNote'))
           ),
-          h('div', { className: 'dsb-grid' },
-            group.cards.map((card) => h(SessionCard, {
-              key: card.id,
-              card,
-              pinned: false,
-              busy: !!busyIds[card.id],
-              expandable: false,
-              expanded: false,
-              onActivate: (target) => handleActivate(target, false),
-              onTogglePin: togglePin,
-              t
-            }))
-          )
+          pinnedCards.length > 0
+            ? h('div', { className: 'dsb-grid' }, pinnedCards.map((card) => renderCard(card, { pinned: true })))
+            : h('div', { className: 'dsb-pinned-empty' }, t('pinned.empty')),
+          renderDrawer(pinnedCards)
         ))
       }
 
@@ -1433,14 +1902,47 @@ body[data-ds-dark-theme] .dsb-card {
           h('strong', null, t('empty.title')),
           h('span', null, t('empty.body'))
         ))
-      } else if (!showAllCards && hiddenCount > 0) {
-        content.push(h('div', { className: 'dsb-collapsed-note', key: 'collapsed' },
-          h('span', null, t('collapsed.note', { n: hiddenCount })),
-          h('button', {
-            className: 'dsb-collapsed-button',
-            type: 'button',
-            onClick: () => setShowAllCards(true)
-          }, t('collapsed.showAll'))
+      } else if (showAll) {
+        for (const group of groups) {
+          const collapsed = collapsedWorkspaces.has(group.key)
+          content.push(h('section', { className: 'dsb-group dsb-section-in' + (collapsed ? ' dsb-group--collapsed' : ''), key: group.key },
+            h('div', {
+              className: 'dsb-group-head dsb-group-head--clickable',
+              role: 'button',
+              tabIndex: 0,
+              'aria-expanded': collapsed ? 'false' : 'true',
+              onClick: () => toggleWorkspace(group.key),
+              onKeyDown: (event) => {
+                if (event.target !== event.currentTarget) return
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  toggleWorkspace(group.key)
+                }
+              }
+            },
+              h('div', { className: 'dsb-group-title' },
+                h(IconFolder, { size: 15 }),
+                group.title,
+                h('span', { className: 'dsb-group-count' }, String(group.cards.length))
+              ),
+              group.path ? h('div', { className: 'dsb-group-path', title: group.path }, group.path) : null,
+              h('span', { className: 'dsb-group-caret' + (collapsed ? ' dsb-group-caret--collapsed' : '') }, '▾')
+            ),
+            h(GroupBody, { collapsed },
+              h('div', { className: 'dsb-grid' }, group.cards.map((card) => renderCard(card, {}))),
+              renderDrawer(group.cards)
+            )
+          ))
+        }
+      } else if (activeCards.length > 0) {
+        content.push(h('section', { className: 'dsb-active dsb-section-in', key: 'active' },
+          h('div', { className: 'dsb-grid' }, activeCards.map((card) => renderCard(card, { dismissable: card.status.key === 'done' }))),
+          renderDrawer(activeCards)
+        ))
+      } else {
+        content.push(h('div', { className: 'dsb-empty dsb-section-in', key: 'empty-active' },
+          h('strong', null, t('empty.activeTitle')),
+          h('span', null, t('empty.activeBody'))
         ))
       }
 
@@ -1453,11 +1955,16 @@ body[data-ds-dark-theme] .dsb-card {
 
     function BackToBoardButton(props) {
       const t = typeof props.t === 'function' ? props.t : (key) => key
+      const list = props.useSessions ? props.useSessions((state) => state) : undefined
+      const statusMap = props.useSessionStatus ? props.useSessionStatus((state) => state) : undefined
+      const workspaceState = props.useWorkspaces ? props.useWorkspaces((state) => state) : undefined
+      const tone = entryTone(computeEntrySignal(list, statusMap, workspaceState))
       return h('button', {
         className: 'dsb-back',
         type: 'button',
         title: t('back.label'),
-        onClick: props.goBoard
+        onClick: props.goBoard,
+        style: tone ? { color: tone } : undefined
       },
       h(IconBack),
       h('span', null, t('back.label')))
